@@ -18,69 +18,66 @@ require BSUPPORT + '/lib/cooldialog.rb'
 $tmpfile = File.expand_path('~/Library/Preferences/itunescontroller.tempimage.jpg')
 
 def cool(msg)
-	TextMate::CoolDialog.cool_tool_tip("&lt;style&gt;img{width:150px;margin:0 auto;}p{width:250px;text-align:center;font-size:10px}&lt;/style&gt;#{msg}")
+  TextMate::CoolDialog.cool_tool_tip("&lt;style&gt;img{width:150px;margin:0 auto;}p{width:250px;text-align:center;font-size:10px}&lt;/style&gt;#{msg}")
 end
 
 def update_artwork
-	tag = %x{osascript &lt;&lt;-APPLESCRIPT
-             set _tmppath to POSIX file "#{$tmpfile}"
-		    set _missing to POSIX file "#{ENV['TM_BUNDLE_SUPPORT']}/missingartwork.jpg"
+  tag = %x{osascript &lt;&lt;-APPLESCRIPT
+set _tmppath to POSIX file "#{$tmpfile}"
+set _missing to POSIX file "#{ENV['TM_BUNDLE_SUPPORT']}/missingartwork.jpg"
 tell application "iTunes"
-	set _currtrack to get current track
-	set _artist to artist of _currtrack
-	set _title to name of _currtrack
-	if exists artworks of _currtrack then
+ set _currtrack to get current track
+ set _artist to artist of _currtrack
+ set _title to name of _currtrack
+ if exists artworks of _currtrack then
+   try
+    tell me to set file_reference to (open for access _tmppath with write permission)
+    tell application "iTunes" to write (get raw data of artwork 1 of _currtrack) to file_reference starting at 0
+    tell me to close access file_reference
+    set _art to POSIX path of _tmppath
+   on error m
 	try
-		tell me to set file_reference to (open for access _tmppath with write permission)
-		tell application "iTunes" to write (get raw data of artwork 1 of _currtrack) to file_reference starting at 0
-		tell me to close access file_reference
-		set _art to POSIX path of _tmppath
-	on error m
-		try
-			tell me to close access file_reference
-		end try
-		set _art to POSIX path of _missing
+   		tell me to close access file_reference
 	end try
-	else
-		set _art to POSIX path of _missing
-	end if
-	return {_art,_title &amp; "&lt;br /&gt;by " &amp; _artist}
-	end tell
+ 	set _art to POSIX path of _missing
+   end try
+ else
+   set _art to POSIX path of _missing
+ end if
+ return {_art,_title &amp; "&lt;br /&gt;by " &amp; _artist}
+end tell
 APPLESCRIPT }.split(",")
-	return [tag[0],tag[1]]
+  return [tag[0],tag[1]]
 end
 
 linklist = ['Play/Pause','Next','Previous','Song Info'].collect { |e| { 'title' =&gt; e.to_s } }
 
-    plist = { 'menuItems' =&gt; linklist }.to_plist
+plist = { 'menuItems' =&gt; linklist }.to_plist
 
-    res = OSX::PropertyList.load(`#{e_sh DIALOG} -up #{e_sh plist}`)
-    TextMate.exit_discard unless res.has_key? 'selectedMenuItem'
+res = OSX::PropertyList.load(`#{e_sh DIALOG} -up #{e_sh plist}`)
+TextMate.exit_discard unless res.has_key? 'selectedMenuItem'
 sel = res['selectedMenuItem']['title']
 case sel
-	when "Next":
-		%x{osascript -e 'tell app "itunes" to next track'}
-		image,tag = update_artwork
-		out = "&lt;img src=\"file://#{image}\" width=150 height=150 /&gt;&lt;br /&gt;&lt;p&gt;Next Track: #{tag}&lt;/p&gt;"
-		cool(out)
-	when "Previous":
-		%x{osascript -e 'tell app "itunes" to previous track'}
-		image,tag = update_artwork
-		out = "&lt;img src=\"file://#{image}\" width=150 height=150 /&gt;&lt;br /&gt;&lt;p&gt;Next Track: #{tag}&lt;/p&gt;"
-		cool(out)
-	when "Play/Pause":
-		%x{osascript -e 'tell app "itunes" to playpause'}
-		is_playing = %x{osascript -e 'tell app "itunes" to return player state'}
-		cool(is_playing.capitalize)
-	when "Song Info":
-		image,tag = update_artwork
-		is_playing = %x{osascript -e 'tell app "itunes" to return player state'}
-		out = "&lt;img src=\"file://#{image}\" width=150 height=150 /&gt;&lt;br /&gt;&lt;p&gt;#{is_playing.capitalize.strip}: #{tag}&lt;/p&gt;"
-		cool(out)
-
+  when "Next":
+      %x{osascript -e 'tell app "itunes" to next track'}
+    image,tag = update_artwork
+    out = "&lt;img src=\"file://#{image}\" width=150 height=150 /&gt;&lt;br /&gt;&lt;p&gt;Next Track: #{tag}&lt;/p&gt;"
+    cool(out)
+  when "Previous":
+      %x{osascript -e 'tell app "itunes" to previous track'}
+    image,tag = update_artwork
+    out = "&lt;img src=\"file://#{image}\" width=150 height=150 /&gt;&lt;br /&gt;&lt;p&gt;Next Track: #{tag}&lt;/p&gt;"
+    cool(out)
+  when "Play/Pause":
+      %x{osascript -e 'tell app "itunes" to playpause'}
+    is_playing = %x{osascript -e 'tell app "itunes" to return player state'}
+    cool(is_playing.capitalize)
+  when "Song Info":
+      image,tag = update_artwork
+    is_playing = %x{osascript -e 'tell app "itunes" to return player state'}
+    out = "&lt;img src=\"file://#{image}\" width=150 height=150 /&gt;&lt;br /&gt;&lt;p&gt;#{is_playing.capitalize.strip}: #{tag}&lt;/p&gt;"
+    cool(out)
 end
-
-
 </string>
 	<key>input</key>
 	<string>none</string>
