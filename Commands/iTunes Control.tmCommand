@@ -57,23 +57,24 @@ plist = { 'menuItems' =&gt; linklist }.to_plist
 res = OSX::PropertyList.load(`#{e_sh DIALOG} -up #{e_sh plist}`)
 TextMate.exit_discard unless res.has_key? 'selectedMenuItem'
 sel = res['selectedMenuItem']['title']
+random = rand(12000)
 case sel
   when "Next":
       %x{osascript -e 'tell app "itunes" to next track'}
     image,tag = update_artwork
-    out = "&lt;img src=\"file://#{image}\" width=150 height=150 /&gt;&lt;br /&gt;&lt;p&gt;Playing Track: #{tag}&lt;/p&gt;"
+    out = "&lt;img src=\"file://#{image}?#{rand}\" width=150 height=150 /&gt;&lt;br /&gt;&lt;p&gt;Playing Track: #{tag}&lt;/p&gt;"
     cool(out)
   when "Previous":
       %x{osascript -e 'tell app "itunes" to previous track'}
     image,tag = update_artwork
-    out = "&lt;img src=\"file://#{image}\" width=150 height=150 /&gt;&lt;br /&gt;&lt;p&gt;Playing Track: #{tag}&lt;/p&gt;"
+    out = "&lt;img src=\"file://#{image}?#{rand}\" width=150 height=150 /&gt;&lt;br /&gt;&lt;p&gt;Playing Track: #{tag}&lt;/p&gt;"
     cool(out)
   when "Play/Pause":
       %x{osascript -e 'tell app "itunes" to playpause'}
     is_playing = %x{osascript -e 'tell app "itunes" to return player state'}
     if is_playing.strip == "playing"
 	 image,tag = update_artwork
-	 out = "&lt;img src=\"file://#{image}\" width=150 height=150 /&gt;&lt;br /&gt;&lt;p&gt;Playing Track: #{tag}&lt;/p&gt;"
+	 out = "&lt;img src=\"file://#{image}?#{rand}\" width=150 height=150 /&gt;&lt;br /&gt;&lt;p&gt;Playing Track: #{tag}&lt;/p&gt;"
 	 cool(out)
 	else
 	 cool(is_playing)
@@ -81,7 +82,7 @@ case sel
   when "Song Info":
       image,tag = update_artwork
     is_playing = %x{osascript -e 'tell app "itunes" to return player state'}
-    out = "&lt;img src=\"file://#{image}\" width=150 height=150 /&gt;&lt;br /&gt;&lt;p&gt;#{is_playing.capitalize.strip}: #{tag}&lt;/p&gt;"
+    out = "&lt;img src=\"file://#{image}?#{rand}\" width=150 height=150 /&gt;&lt;br /&gt;&lt;p&gt;#{is_playing.capitalize.strip}: #{tag}&lt;/p&gt;"
     cool(out)
 end
 </string>
